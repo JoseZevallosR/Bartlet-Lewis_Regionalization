@@ -128,6 +128,7 @@ kickOutliers=function(data){
   #delete neighbors based on variance outliers
   data_help=data
   coordinates(data_help) <- ~x+y
+  proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
   mdist <- distm(data_help,fun = distHaversine)
   neighbors=nearpoints(mdist)
   outlier=c()
@@ -147,6 +148,7 @@ filter_Neigbors=function(data,min_n=3,radio=60000){
   #min_n= number of minumun neighbors required
   data_help=data
   coordinates(data_help) <- ~x+y
+  proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
   mdist <- distm(data_help,fun = distHaversine)
   neighbors=nearpoints(mdist,radio=radio)
   stations=data[lengths(neighbors)>=min_n,]
@@ -186,16 +188,16 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
   #stats is the rainfall statistics
   
   #Estaciones cambiantes de intervalos
-  iter=1
   range=1:dim(data)[1]
   
-  while (length(range)>0.05*length(range)){
+  for (iter in 1:times){
     print(paste("Number of cross validation iteration",as.character(iter)))
-    iter=iter+1
     
     
     data_help=data
     coordinates(data_help) <- ~x+y
+    proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+
     mdist <- distm(data_help,fun = distHaversine)
     vecinos=nearpoints(mdist)
     
@@ -235,38 +237,34 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
       } 
     }
     
-    mistakes=unique(mistakes)
-    range=mistakes #"range is changing "
-    
-    n=dim(Stats)[1]
-    parameters=data[,3:8]#matrix(data=NA,nrow =n,ncol = 6)
-    print("number of station to correct: ")
-    print(length(mistakes))
-    for (i in mistakes){
-      momentos=Stats[i,]
+      mistakes=unique(mistakes)
+      range=mistakes #"range is changing "
       
-      mean24 = momentos$mean24
-      var24 = momentos$var24
-      cov24lag1 =momentos$autocov24
-      pdr24=momentos$dryperiod24
-      var3=momentos$var3
-      var6=momentos$var6
-      var12=momentos$var12
-      var18=momentos$var18
+      n=dim(Stats)[1]
+      parameters=data[,3:8]#matrix(data=NA,nrow =n,ncol = 6)
+      print("number of station to correct: ")
+      print(length(mistakes))
+      for (i in mistakes){
+        momentos=Stats[i,]
+        
+        mean24 = momentos$mean24
+        var24 = momentos$var24
+        cov24lag1 =momentos$autocov24
+        pdr24=momentos$dryperiod24
+        var3=momentos$var3
+        var6=momentos$var6
+        var12=momentos$var12
+        var18=momentos$var18
+        
+        par=MBLRPM(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
+        
+        parameters[i,]=par
+      }
       
-      par=MBLRPM(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
       
-      parameters[i,]=par
-    }
-    
-    
-    parameters=cbind(Stats[,1:2],parameters)
-    names(parameters)=c('x','y','a','l','v','k','f','mx')
-    data=parameters#check
-    
-    if (iter==80){
-      break
-    }
+      parameters=cbind(Stats[,1:2],parameters)
+      names(parameters)=c('x','y','a','l','v','k','f','mx')
+      data=parameters#check
   }
   
   parameters
@@ -321,8 +319,7 @@ run=function(rain_stats,path,iterations=5){
   
   print('Reptitive Cross Validations ...')
   CV_parameters=repetitiveCV(times = iterations,parameters,rain_stats,Lmin = Lmin ,Lmax = Lmax)
-  
   #saving the initial parameters
-  
   write.table(CV_parameters,paste0(path,'parameters01.csv'),sep = ',',row.names = F)
+  CV_parameters
 }

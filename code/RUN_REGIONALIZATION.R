@@ -9,4 +9,4 @@ gauge_stats=kickOutliers(gauge_stats)
 gauge_stats=filter_Neigbors(gauge_stats)
 dim(gauge_stats)
 
-maps=run(rain_stats=gauge_stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/",iterations=10)
+maps=run(rain_stats=gauge_stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/",iterations=20)

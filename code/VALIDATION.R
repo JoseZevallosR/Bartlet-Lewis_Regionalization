@@ -21,7 +21,7 @@ try(for (i in 1:n){
   
 
 
-  CV_parameters=try(run(stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/",iterations=5))
+  CV_parameters=try(run(stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/",iterations=20))
   for (j in 1:6){
       info=CV_parameters[[c('a','l','v','k','f','mx')[j]]]
       denominador=sum((1/mdist[i,-i])^2)

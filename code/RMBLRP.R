@@ -2,46 +2,47 @@ library(extRemes)
 library(raster)
 library("HyetosMinute")
 library(geosphere)
+library(foreach)
+library(doParallel)
 
-####################################
-###Model Statistics#################
-####################################
-#Mean
-meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-  x<-(h*l*mx*v*(1+k/f))/(a-1) 
-  return(x)
-}
-#Variance
-varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-  A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-  B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
-  C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
-  D<-A*(B-C)
-  return(D)
-}
-#Covariance
-covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
-  A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-  B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
-  C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
-  D<-A*(B-C)
-  return(D)
-}
-#Dry probabilities
-pdrMBLRPM<-function(a,l,v,k,f,h=1) {
-  mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
-  G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
-  A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
-  D<-exp(l*(-h-mt+G00*A)) 
-  return(D)
-}
 
 ####################################
 #######Optimization Function########
 ####################################
 
 MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
-  
+  ####################################
+  ###Model Statistics#################
+  ####################################
+  #Mean
+  meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    x<-(h*l*mx*v*(1+k/f))/(a-1) 
+    return(x)
+  }
+  #Variance
+  varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
+    C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
+    D<-A*(B-C)
+    return(D)
+  }
+  #Covariance
+  covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
+    A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
+    C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
+    D<-A*(B-C)
+    return(D)
+  }
+  #Dry probabilities
+  pdrMBLRPM<-function(a,l,v,k,f,h=1) {
+    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
+    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
+    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
+    D<-exp(l*(-h-mt+G00*A)) 
+    return(D)
+  }
   #Objective function
   fopt <- function(x) {
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
@@ -183,7 +184,7 @@ idwCV=function(data,parameter='a',power=2){
 #######Repetitive Cross Validation##
 ####################################
 
-repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
+repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
   #data contains the intial parameter estimation
   #stats is the rainfall statistics
   
@@ -205,14 +206,14 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
     
     mistakes=c()
     for (station in range){
-      if (station%%50==0){
-        print(paste0('Search region modification ...',as.character(station)))
-      }
+      #if (station%%50==0){
+      #  print(paste0('Search region modification ...',as.character(station)))
+      #}
       
       for (k in 1:6){#parameters, 6 in total
-        if (station%%50==0){
-          print(paste('Checking parameter',k))
-        }
+        #if (station%%50==0){
+         # print(paste('Checking parameter',k))
+        #}
         
         x <- idwCV(data[c(station,vecinos[[station]]),],parameter= c('a','l','v','k','f','mx')[k],power=2)
         
@@ -244,7 +245,21 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
       parameters=data[,3:8]#matrix(data=NA,nrow =n,ncol = 6)
       print("number of station to correct: ")
       print(length(mistakes))
-      for (i in mistakes){
+
+      n.cores <- parallel::detectCores() - 1
+      #create the cluster
+      my.cluster <- parallel::makeCluster(
+        n.cores, 
+        type = "PSOCK"
+      )
+      #register it to be used by %dopar%
+      doParallel::registerDoParallel(cl = my.cluster)
+
+      parameters[mistakes,]=t(matrix(foreach(
+          i=mistakes,
+          .combine = 'c', 
+          .packages = "HyetosMinute"
+        ) %dopar% {
         momentos=Stats[i,]
         
         mean24 = momentos$mean24
@@ -256,11 +271,11 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
         var12=momentos$var12
         var18=momentos$var18
         
-        par=MBLRPM(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
+        par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
         
-        parameters[i,]=par
-      }
-      
+        return(par)
+        },nrow = 6,ncol = length(mistakes)))
+      parallel::stopCluster(cl = my.cluster) #closing the cluster
       
       parameters=cbind(Stats[,1:2],parameters)
       names(parameters)=c('x','y','a','l','v','k','f','mx')
@@ -273,7 +288,7 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax){
 ##########################################
 ###### Run Function#######################
 ##########################################
-run=function(rain_stats,path,iterations=5){
+run=function(rain_stats,path,iterations=5,fun=MBLRPM){
   #rain_stats: contains the rainfall statistics
   #path: where to save the results
   #Maskshape: Shape form of the final results 
@@ -286,17 +301,26 @@ run=function(rain_stats,path,iterations=5){
   Lmax=matrix(c(4,0.1,0.1,0.1,0.1,20),nrow=6,ncol=n)
   
   
-  print('Calculating the initial parameters ...')
+  #print('Calculating the initial parameters ...')
   #Initial parameters 
   parameters0=matrix(data=NA,nrow =n,ncol = 6)
   
-  
-  for (i in 1:n){
-    momentos=rain_stats[i,]
+  n.cores <- parallel::detectCores() - 1
+  #create the cluster
+  my.cluster <- parallel::makeCluster(
+    n.cores, 
+    type = "PSOCK"
+  )
+  #register it to be used by %dopar%
+  doParallel::registerDoParallel(cl = my.cluster)
 
-    if (i%%20==0){
-      print(paste('Parameters of','gauge',as.character(i)))
-    }
+  parameters0=t(matrix(foreach(
+    i=1:n,
+    .combine = 'c', 
+    .packages = "HyetosMinute"
+  ) %dopar% {
+    
+    momentos=rain_stats[i,]
     
     mean24 = momentos$mean24
     var24 = momentos$var24
@@ -306,13 +330,14 @@ run=function(rain_stats,path,iterations=5){
     var6=momentos$var6
     var12=momentos$var12
     var18=momentos$var18
-    par=MBLRPM(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
-
-    parameters0[i,]=par
-
+    par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
     
-  }
+    return(par)
+    
+    
+  },nrow = 6,ncol = n))
 
+  parallel::stopCluster(cl = my.cluster) #closing the cluster
 
   parameters=cbind(rain_stats[,1:2],parameters0)
   names(parameters)=c('x','y','a','l','v','k','f','mx')

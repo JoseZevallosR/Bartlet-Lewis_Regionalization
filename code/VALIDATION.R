@@ -7,15 +7,15 @@ gauge_stats=filter_Neigbors(gauge_stats)
 
 n=dim(gauge_stats)[1]
 
-#validation_parameters=matrix(data=NA,nrow=n,ncol=6)
-validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv')
+validation_parameters=matrix(data=NA,nrow=n,ncol=6)
+#validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv')
 
 gauge_help=gauge_stats
 coordinates(gauge_help) <- ~x+y
 proj4string(gauge_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 mdist=distm(gauge_help)
 
-try(for (i in 100:n){
+try(for (i in 1:n){
 
 
 
@@ -24,7 +24,7 @@ try(for (i in 100:n){
   
 
   print(paste('Cross Validation: ',as.character(i)))
-  CV_parameters=try(run(stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/",iterations=5))
+  CV_parameters=try(run(stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/",iterations=25))
   for (j in 1:6){
       info=CV_parameters[[c('a','l','v','k','f','mx')[j]]]
       denominador=sum((1/mdist[i,-i])^2)
@@ -33,5 +33,5 @@ try(for (i in 100:n){
   
   
   
-  write.table(validation_parameters,'D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv',sep=',',row.names = F)
+  write.table(validation_parameters,'D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters2.csv',sep=',',row.names = F)
 })

@@ -39,7 +39,7 @@ raster_to_df=function(dir,n){
       count=count+1
       class_matrix[i,]=c(breaks[i],breaks[i+1],count)
       
-      legenda=c(legenda,paste(as.character(round(breaks[i],5)),as.character(round(breaks[i+1],5)),sep = '-'))
+      legenda=c(legenda,paste(as.character(round(breaks[i],2)),as.character(round(breaks[i+1],2)),sep = '-'))
     }
     list(matt=class_matrix,legends=legenda)
   }
@@ -47,7 +47,7 @@ raster_to_df=function(dir,n){
   map = raster(dir)
   c(matt,legenda):=reclass_raster(breaks = breaks_df(na.omit(values(map)),n))
   
-  map = reclassify(map,matt)
+  map = reclassify(map,matt,include.lowest=TRUE)
   
   map.p=rasterToPoints(map)
   df <- data.frame(map.p)
@@ -55,12 +55,11 @@ raster_to_df=function(dir,n){
   list(df=df,legenda=legenda)
 }
 
-plot_map=function(df.map,legenda,n,titulo){
+plot_map=function(df.map,legenda,titulo){
   
-  Mypal=gray.colors(n)
+  Mypal=gray.colors(length(legenda))
 
   #number of intervals
-  
   ggplot(data=df.map, aes(y=Latitude, x=Longitude)) +
     geom_raster(aes(fill=factor(MAP))) +
     theme(legend.position="left")+
@@ -79,21 +78,38 @@ u=expression(paste(mu,'(mm/hr)'))
 
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-1.tif',11)
-mapa1=plot_map(df.map,legenda,11,titulo = a)
+mapa1=plot_map(df.map,legenda,titulo = a)
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-2.tif',11)
-mapa2=plot_map(df.map,legenda,11,titulo = l)
+mapa2=plot_map(df.map,legenda,titulo = l)
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-3.tif',11)
-mapa3=plot_map(df.map,legenda,11,titulo = v)
+mapa3=plot_map(df.map,legenda,titulo = v)
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-4.tif',11)
-mapa4=plot_map(df.map,legenda,11,titulo = k)
+mapa4=plot_map(df.map,legenda,titulo = k)
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-5.tif',11)
-mapa5=plot_map(df.map,legenda,11,titulo = phi)
+mapa5=plot_map(df.map,legenda,titulo = phi)
 
 c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/parametros-6.tif',11)
-mapa6=plot_map(df.map,legenda,11,titulo = u)
+mapa6=plot_map(df.map,legenda,titulo = u)
+
+
+grid.arrange(arrangeGrob(mapa1,mapa2,mapa3,mapa4,mapa5,mapa6,nrow = 2))
+
+
+
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_hours_between_storm.tif',11)
+mapa1=plot_map(df.map,legenda,titulo = 'Average hours between storm')
+
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_storm_duration.tif',30)
+mapa2=plot_map(df.map,legenda,titulo = 'Average storm duration')
+
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_rainfall_deph_storm.tif',11)
+mapa3=plot_map(df.map,legenda,titulo = 'Average rain deph per storm')
+
+
+grid.arrange(arrangeGrob(mapa1,mapa2,mapa3,nrow = 1))
 
 

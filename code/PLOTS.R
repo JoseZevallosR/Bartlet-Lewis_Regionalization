@@ -68,14 +68,8 @@ gauge_stats=filter_Neigbors(gauge_stats)
 
 #Model CV parameters
 validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv')
-
 #Simulated Stats
 simulated_stats=data.frame(gauge_stats[,c(1,2)],SimStats(validation_parameters))
-
-
-
-
-simulated_stats=read.csv('~/ILA_NORMA/Modelo/Regionalizacion/StatsCV2.csv')
 
 dev.new()
 par(mfrow=c(4,4)) 

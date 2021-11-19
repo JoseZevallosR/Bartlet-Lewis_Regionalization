@@ -43,7 +43,38 @@ pdrMBLRPM<-function(a,l,v,k,f,h=1) {
 ####################################
 
 MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
-
+  ####################################
+  ###Model Statistics#################
+  ####################################
+  #Mean
+  meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    x<-(h*l*mx*v*(1+k/f))/(a-1) 
+    return(x)
+  }
+  #Variance
+  varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
+    C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
+    D<-A*(B-C)
+    return(D)
+  }
+  #Covariance
+  covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
+    A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
+    C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
+    D<-A*(B-C)
+    return(D)
+  }
+  #Dry probabilities
+  pdrMBLRPM<-function(a,l,v,k,f,h=1) {
+    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
+    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
+    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
+    D<-exp(l*(-h-mt+G00*A)) 
+    return(D)
+  }
   #Objective function
   fopt <- function(x) {
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
@@ -190,34 +221,24 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
   #stats is the rainfall statistics
   
   #Estaciones cambiantes de intervalos
-  range=1:dim(data)[1]
   
+  parameters=data[,3:8]
+  data_help=data
+  coordinates(data_help) <- ~x+y
+  proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+
+  mdist <- distm(data_help,fun = distHaversine)
+  vecinos=nearpoints(mdist)
+
+  range=clusterIDX(data)
   for (iter in 1:times){
     print(paste("Number of cross validation iteration",as.character(iter)))
-    
-    
-    data_help=data
-    coordinates(data_help) <- ~x+y
-    proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
-
-    mdist <- distm(data_help,fun = distHaversine)
-    vecinos=nearpoints(mdist)
-    
-    formulas=c(formula('a~1'),formula('l~1'),formula('v~1'),formula('k~1'),formula('f~1'),formula('mx~1'))
-    
-    mistakes=c()
+    k_cluster=1
     for (station in range){
-      #if (station%%50==0){
-      #  print(paste0('Search region modification ...',as.character(station)))
-      #}
-      
+      print(paste('cluster :',as.character(k_cluster),'/',as.character(length(range))))
+      mistakes=c()
       for (k in 1:6){#parameters, 6 in total
-        #if (station%%50==0){
-         # print(paste('Checking parameter',k))
-        #}
-        
         x <- idwCV(data[c(station,vecinos[[station]]),],parameter= c('a','l','v','k','f','mx')[k],power=2)
-        
         #Checking region error
         sub=x[c('x','y','var1.pred','observed','residual')]
         sub$porcentaje=abs(sub$residual)*100/sub$observed
@@ -236,54 +257,53 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
             mistakes=c(mistakes,fix_id) #add the wrong stations
           }
         }
-      } 
-    }
-    
+      }
+      n_parameters=length(mistakes)
       mistakes=unique(mistakes)
-      range=mistakes #"range is changing "
       
-      n=dim(Stats)[1]
-      parameters=data[,3:8]#matrix(data=NA,nrow =n,ncol = 6)
-      print("number of station to correct: ")
-      print(length(mistakes))
+      if (length(mistakes)==0){
+              print('No parameters to correct')
+      }else{
+              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(round(n_parameters*100/(6*length(sub$location)),2)),'%)'))
+              n.cores <- parallel::detectCores() - 1
+              #create the cluster
+              my.cluster <- parallel::makeCluster(
+                n.cores, 
+                type = "PSOCK"
+              )
+              #register it to be used by %dopar%
+              doParallel::registerDoParallel(cl = my.cluster)
 
-      n.cores <- parallel::detectCores() - 1
-      #create the cluster
-      my.cluster <- parallel::makeCluster(
-        n.cores, 
-        type = "PSOCK"
-      )
-      #register it to be used by %dopar%
-      doParallel::registerDoParallel(cl = my.cluster)
-
-      parameters[mistakes,]=t(matrix(foreach(
-          i=mistakes,
-          .combine = 'c', 
-          .packages = "HyetosMinute"
-        ) %dopar% {
-        momentos=Stats[i,]
-        
-        mean24 = momentos$mean24
-        var24 = momentos$var24
-        cov24lag1 =momentos$autocov24
-        pdr24=momentos$dryperiod24
-        var3=momentos$var3
-        var6=momentos$var6
-        var12=momentos$var12
-        var18=momentos$var18
-        
-        par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
-        
-        return(par)
-        },nrow = 6,ncol = length(mistakes)))
-      parallel::stopCluster(cl = my.cluster) #closing the cluster
-      
-      parameters=cbind(Stats[,1:2],parameters)
-      names(parameters)=c('x','y','a','l','v','k','f','mx')
-      data=parameters#check
+              parameters[mistakes,]=t(matrix(foreach(
+                  i=mistakes,
+                  .combine = 'c', 
+                  .packages = "HyetosMinute"
+                ) %dopar% {
+                momentos=Stats[i,]
+                
+                mean24 = momentos$mean24
+                var24 = momentos$var24
+                cov24lag1 =momentos$autocov24
+                pdr24=momentos$dryperiod24
+                var3=momentos$var3
+                var6=momentos$var6
+                var12=momentos$var12
+                var18=momentos$var18
+                
+                par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
+                
+                return(par)
+                },nrow = 6,ncol = length(mistakes)))
+              parallel::stopCluster(cl = my.cluster) #closing the cluster 
+      }
+      k_cluster=k_cluster+1 #counting clusters
+    }  
+      #parameters=cbind(Stats[,1:2],parameters)
+      names(parameters)=c('a','l','v','k','f','mx')#c('x','y','a','l','v','k','f','mx')
+      data[,3:8]=parameters#check
   }
   
-  parameters
+  data
 }
 
 ##########################################
@@ -375,4 +395,34 @@ SimStats= function(parameters){
     stats[i,]=as.numeric(est)
   }
   stats
+}
+
+clusterIDX=function(data){
+  #data contains the intial parameter estimation
+  #stats is the rainfall statistics
+  drop_range=function(x,vector){
+    for (element in vector){
+      x=x[x!=element]
+    }
+    x
+  }
+  #Estaciones cambiantes de intervalos
+  range=1:dim(data)[1]
+  
+  
+  data_help=data
+  coordinates(data_help) <- ~x+y
+  proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+  
+  mdist <- distm(data_help,fun = distHaversine)
+  vecinos=nearpoints(mdist)
+  
+  idx=c()  
+  while (length(range)!=0){
+    
+    station=range[1] 
+    range=drop_range(range,c(station,vecinos[[station]]))
+    idx=c(idx,station)
+  }#ends parameter iteration
+  idx
 }

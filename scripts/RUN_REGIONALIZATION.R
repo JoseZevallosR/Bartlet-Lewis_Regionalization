@@ -1,7 +1,7 @@
 
 #Importing the regionalization functionality
 
-source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/code/RMBLRP.R')
+source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/RMBLRP.R')
 
 #Mixed stats from gauge stations and corrected TRMM
 gauge_stats=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/data/gauge_stats.csv')

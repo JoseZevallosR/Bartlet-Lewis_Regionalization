@@ -5,44 +5,45 @@ library(geosphere)
 library(foreach)
 library(doParallel)
 
+####################################
+###Model Statistics#################
+####################################
+#Mean
+meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    x<-(h*l*mx*v*(1+k/f))/(a-1) 
+    return(x)
+}
+#Variance
+varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
+    A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
+    C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
+    D<-A*(B-C)
+    return(D)
+}
+#Covariance
+covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
+    A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+    B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
+    C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
+    D<-A*(B-C)
+    return(D)
+}
+#Dry probabilities
+pdrMBLRPM<-function(a,l,v,k,f,h=1) {
+    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
+    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
+    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
+    D<-exp(l*(-h-mt+G00*A)) 
+    return(D)
+}
 
 ####################################
 #######Optimization Function########
 ####################################
 
 MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
-  ####################################
-  ###Model Statistics#################
-  ####################################
-  #Mean
-  meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-    x<-(h*l*mx*v*(1+k/f))/(a-1) 
-    return(x)
-  }
-  #Variance
-  varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-    A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-    B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
-    C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
-    D<-A*(B-C)
-    return(D)
-  }
-  #Covariance
-  covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
-    A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-    B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
-    C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
-    D<-A*(B-C)
-    return(D)
-  }
-  #Dry probabilities
-  pdrMBLRPM<-function(a,l,v,k,f,h=1) {
-    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
-    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
-    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
-    D<-exp(l*(-h-mt+G00*A)) 
-    return(D)
-  }
+
   #Objective function
   fopt <- function(x) {
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
@@ -347,4 +348,31 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM){
   #saving the initial parameters
   write.table(CV_parameters,paste0(path,'parameters01.csv'),sep = ',',row.names = F)
   CV_parameters
+}
+
+
+##################
+SimStats= function(parameters){
+
+  stats=matrix(data=NA,nrow = dim(parameters)[1],ncol = 16)
+  for (i in 1:dim(parameters)[1]){
+    par=parameters[i,]
+    par[2]<-par[2]*24
+    par[3]<-par[3]/24
+    par[6]=par[6]*24
+    
+    est=numeric(16)
+    iter=0
+    for (j in c(24,3,6,12)){
+      m=meanMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
+      v=varMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
+      cov=covarMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
+      pdr=pdrMBLRPM(par[1],par[2],par[3],par[4],par[5],h=j/24)
+      est[(1+iter*4):(4+iter*4)]=c(m,v,cov,pdr)
+      iter=iter+1
+    }
+    
+    stats[i,]=as.numeric(est)
+  }
+  stats
 }

@@ -1,0 +1,8 @@
+
+output/CV_maps/average_hours_between_storm.tif
+output/CV_maps/average_rainfall_deph_storm.tif
+output/CV_maps/average_storm_duration.tif
+output/CV_maps/average_storm_duration.tif.aux.xml
+output/CV_validation/CrossValidationParameters2.csv
+output/CV_validation/parameters01.csv
+output/CV_validation/parameters01.csv

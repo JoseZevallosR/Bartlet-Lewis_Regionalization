@@ -231,6 +231,8 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
   vecinos=nearpoints(mdist)
 
   range=clusterIDX(data)
+  old_error=rep(100,length(range))
+  current_error=numeric(length(range))
   for (iter in 1:times){
     print(paste("Number of cross validation iteration",as.character(iter)))
     k_cluster=1
@@ -262,9 +264,18 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
       mistakes=unique(mistakes)
       
       if (length(mistakes)==0){
+              current_error[k_cluster]=0
               print('No parameters to correct')
       }else{
-              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(round(n_parameters*100/(6*length(sub$location)),2)),'%)'))
+        current_error[k_cluster]=round(n_parameters*100/(6*length(sub$location)),2)
+        if(old_error[k_cluster]<current_error[k_cluster]){
+              print('Using old parameter with lower error')
+              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(old_error[k_cluster]),'%)'))
+              parameters[mistakes,]=old_parameters[mistakes,]
+              old_error[k_cluster]=old_error[k_cluster]
+          }else{
+              
+              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(current_error[k_cluster]),'%)'))
               n.cores <- parallel::detectCores() - 1
               #create the cluster
               my.cluster <- parallel::makeCluster(
@@ -295,12 +306,23 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
                 return(par)
                 },nrow = 6,ncol = length(mistakes)))
               parallel::stopCluster(cl = my.cluster) #closing the cluster 
+          
+
+              old_error[k_cluster]=current_error[k_cluster]
+          }
       }
+
+      
       k_cluster=k_cluster+1 #counting clusters
+      
     }  
       #parameters=cbind(Stats[,1:2],parameters)
       names(parameters)=c('a','l','v','k','f','mx')#c('x','y','a','l','v','k','f','mx')
+      old_parameters=data[,3:8]
+      
       data[,3:8]=parameters#check
+
+      #write.table(data,paste0("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",'parameters_iter_',as.character(iter),'.csv'),sep = ',',row.names = F)
   }
   
   data

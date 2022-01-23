@@ -1,7 +1,7 @@
 source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/InterpolationFunctions.R')
 
 
-cv_iter_files=files <- list.files(path = "D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",pattern = "\\.csv",full.names = T)
+cv_iter_files <-'D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/parameters01.csv' #list.files(path = "D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",pattern = "\\.csv",full.names = T)
 
 formulas=c(formula('a~1'),formula('l~1'),formula('v~1'),formula('k~1'),formula('f~1'),formula('mx~1'))
 iter=1

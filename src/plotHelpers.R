@@ -57,13 +57,13 @@ raster_to_df=function(dir,n){
 
 plot_map=function(df.map,legenda,titulo){
   
-  Mypal=gray.colors(length(legenda))
-
+  #Mypal=gray.colors(length(legenda))
+  Mypal=topo.colors(length(legenda))
   #number of intervals
   ggplot(data=df.map, aes(y=Latitude, x=Longitude)) +
     geom_raster(aes(fill=factor(MAP))) +
-    theme(legend.position="left")+
-    scale_fill_manual(values =  Mypal,labels=legenda,name=titulo)+
+    theme(legend.position="left")+ggtitle(titulo)+
+    scale_fill_manual(values =  Mypal,labels=legenda,name=NULL)+
     coord_equal()
   
 }

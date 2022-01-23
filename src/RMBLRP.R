@@ -42,7 +42,7 @@ pdrMBLRPM<-function(a,l,v,k,f,h=1) {
 #######Optimization Function########
 ####################################
 
-MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
+MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin,Lmax){
   ####################################
   ###Model Statistics#################
   ####################################
@@ -81,7 +81,7 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
     w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
     
     
-    S3<-w2*((varMBLRPM(a,l,v,k,f,mx,h=3)/var3)-1)^(2)
+    S3<-w2*((varMBLRPM(a,l,v,k,f,mx,h=3)/var3)-1)^(2)+w3*((covarMBLRPM(a,l,v,k,f,mx,h=3)/cov3lag1)-1)^(2)
 
     S6<-w2*((varMBLRPM(a,l,v,k,f,mx,h=6)/var6)-1)^(2)
     
@@ -92,7 +92,7 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin,Lmax){
     S24 <- w1*((meanMBLRPM(a,l,v,k,f,mx,h=24)/mean24)-1)^(2)+ w2*((varMBLRPM(a,l,v,k,f,mx,h=24)/var24)-1)^(2)+ w3*((covarMBLRPM(a,l,v,k,f,mx,h=24,lag=1)/cov24lag1)-1)^(2)+w4*((pdrMBLRPM(a,l,v,k,f,h=24)/pdr24)-1)^(2)
     
     
-    S<-S24+S3+S6+S12+S18
+    S<-2*S24+S3+S6+S12+S18
     
     if(is.infinite(S)) {S<-10^8}
     if(is.na(S)) {S<-10^8} 
@@ -297,11 +297,12 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
                 cov24lag1 =momentos$autocov24
                 pdr24=momentos$dryperiod24
                 var3=momentos$var3
+                cov3lag1=momentos$autocov3
                 var6=momentos$var6
                 var12=momentos$var12
                 var18=momentos$var18
                 
-                par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
+                par=fun(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin[,i],Lmax[,i])
                 
                 return(par)
                 },nrow = 6,ncol = length(mistakes)))
@@ -370,10 +371,11 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM){
     cov24lag1 =momentos$autocov24
     pdr24=momentos$dryperiod24
     var3=momentos$var3
+    cov3lag1=momentos$autocov3
     var6=momentos$var6
     var12=momentos$var12
     var18=momentos$var18
-    par=fun(mean24,var24,cov24lag1,pdr24,var3,var6,var12,var18,Lmin[,i],Lmax[,i])
+    par=fun(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin[,i],Lmax[,i])
     
     return(par)
     
@@ -448,3 +450,44 @@ clusterIDX=function(data){
   }#ends parameter iteration
   idx
 }
+
+precp_sim=function(par,n,tscale=24){
+  #par are the MBLR parameters
+  #n is the number of days
+  
+  a=par[1]
+  l=par[2]*24
+  v=par[3]/24
+  k=par[4]
+  f=par[5]
+  mx=par[6]*24
+  
+  tt=SequentialSimul(Length=n,BLpar=list(lambda=l,phi=f,kappa=k
+                                            ,alpha=a,v=v,mx=mx,sxmx=1),CellIntensityProp=list(Weibull=FALSE,
+                                                                                              iota=NA),TimeScale=tscale,ExportSynthData=list(exp=TRUE,FileContent=c("AllDays"),DaysPerSeason=31,
+                                                                                                                                        file="SynthRPBLM.txt"),ImportHistData=list(imp=F,file="HistHourlyData.txt",
+                                                                                                                                                                                   ImpDataTimeScale=1,na.values="NA",FileContent=c("AllDays"),DaysPerSeason=31,DailyValues=TRUE),
+                       PlotTs=FALSE,Statistics=list(print=TRUE,plot=FALSE),RandSeed=NULL )[[1]]
+  as.numeric(tt)
+}
+
+points_wgs84=function(data){
+  coordinates(data) <- ~x+y
+  proj4string(data)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+  data
+}
+
+nonzero=function(obs){
+  "cumulative distribution of none zero values"
+  idx=obs>0
+  #ecdf(obs[idx])
+  obs[idx]
+}
+
+
+
+
+
+
+
+

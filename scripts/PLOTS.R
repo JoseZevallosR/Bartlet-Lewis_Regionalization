@@ -8,9 +8,10 @@ gauge_stats=kickOutliers(gauge_stats)
 gauge_stats=filter_Neigbors(gauge_stats)
 
 #Model CV parameters
-validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv')
+#validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters.csv')
+validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/parameters01.csv')
 #Simulated Stats
-simulated_stats=data.frame(gauge_stats[,c(1,2)],SimStats(validation_parameters))
+simulated_stats=data.frame(gauge_stats[,c(1,2)],SimStats(validation_parameters[,-c(1,2)]))
 
 dev.new()
 par(mfrow=c(4,4)) 

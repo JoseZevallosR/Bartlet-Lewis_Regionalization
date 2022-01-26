@@ -30,13 +30,13 @@ covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
     return(D)
 }
 #Dry probabilities
-pdrMBLRPM<-function(a,l,v,k,f,h=1) {
-    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
-    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
-    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
-    D<-exp(l*(-h-mt+G00*A)) 
-    return(D)
-}
+#pdrRPBLRPM<-function(a,l,v,k,f,h=1) {
+#    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
+#    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
+#    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
+#    D<-exp(l*(-h-mt+G00*A)) 
+#    return(D)
+#}
 
 ####################################
 #######Optimization Function########
@@ -68,31 +68,47 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin
     return(D)
   }
   #Dry probabilities
-  pdrMBLRPM<-function(a,l,v,k,f,h=1) {
-    mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
-    G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
-    A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
-    D<-exp(l*(-h-mt+G00*A)) 
-    return(D)
+  #pdrRPBLRPM<-function(a,l,v,k,f,h=1) {
+  #  mt<-((1+(f*(k+f))-(0.25*f*(k+f)*(k+4*f))+((f/72)*(k+f)*(4*(k^2)+27*k*f+72*(f^2))))*v)/(f*(a-1))
+  #  G00<-((1-k-f+1.5*k*f+(f^2)+0.5*(k^2))*v)/(f*(a-1))
+  #  A<-(f+(k*(v/(v+(k+f)*h))^(a-1)))/(f+k)
+  #  D<-exp(l*(-h-mt+G00*A)) 
+  #  return(D)
+  #}
+  symvar<- function(a,l,v,k,f,mx,h,var){
+    (1-varMBLRPM(a,l,v,k,f,mx,h)/var)^(2)+(1-var/varMBLRPM(a,l,v,k,f,mx,h))^(2)
+  }
+  symcovar <- function(a,l,v,k,f,mx,h,cov){
+    (1-covarMBLRPM(a,l,v,k,f,mx,h)/cov)^(2)+(1-cov/covarMBLRPM(a,l,v,k,f,mx,h))^(2)
+  }
+  symmean <- function(a,l,v,k,f,mx,h,meann){
+    (1-meanMBLRPM(a,l,v,k,f,mx,h)/meann)^(2)+(1-meann/meanMBLRPM(a,l,v,k,f,mx,h))^(2)
+  }
+  sympdr <- function(a,l,v,k,f,h,pdrr) {
+    (1-pdrRPBLRPM(a,l,v,k,f,h)/pdrr)^(2)+(1-pdrr/pdrRPBLRPM(a,l,v,k,f,h))^(2)
   }
   #Objective function
   fopt <- function(x) {
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
-    w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
     
-    
-    S3<-w2*((varMBLRPM(a,l,v,k,f,mx,h=3)/var3)-1)^(2)+w3*((covarMBLRPM(a,l,v,k,f,mx,h=3)/cov3lag1)-1)^(2)
 
-    S6<-w2*((varMBLRPM(a,l,v,k,f,mx,h=6)/var6)-1)^(2)
-    
-    S12<-w2*((varMBLRPM(a,l,v,k,f,mx,h=12)/var12)-1)^(2)
-    
-    S18<-w2*((varMBLRPM(a,l,v,k,f,mx,h=18)/var18)-1)^(2)
-    
-    S24 <- w1*((meanMBLRPM(a,l,v,k,f,mx,h=24)/mean24)-1)^(2)+ w2*((varMBLRPM(a,l,v,k,f,mx,h=24)/var24)-1)^(2)+ w3*((covarMBLRPM(a,l,v,k,f,mx,h=24,lag=1)/cov24lag1)-1)^(2)+w4*((pdrMBLRPM(a,l,v,k,f,h=24)/pdr24)-1)^(2)
-    
-    
-    S<-2*S24+S3+S6+S12+S18
+      w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
+      
+      S3<-w2*symvar(a,l,v,k,f,mx,h=3,var3)+w3*symcovar(a,l,v,k,f,mx,h=3,cov3lag1)
+      
+      S6<-w2*symvar(a,l,v,k,f,mx,h=6,var6)
+      
+      S12<-w2*symvar(a,l,v,k,f,mx,h=12,var12)
+      
+      S18<-w2*symvar(a,l,v,k,f,mx,h=18,var18)
+      
+      w1=5;w2=5;w3=5;w4=5
+      
+      S24 <- w1*symmean(a,l,v,k,f,mx,h=24,mean24)+ w2*symvar(a,l,v,k,f,mx,h=24,var24)+ w3*symcovar(a,l,v,k,f,mx,h=24,cov24lag1)+w4*sympdr(a,l,v,k,f,h=24,pdr24)
+      
+      S<-S24+S3+S6+S12+S18
+ 
+  
     
     if(is.infinite(S)) {S<-10^8}
     if(is.na(S)) {S<-10^8} 
@@ -323,7 +339,7 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
       
       data[,3:8]=parameters#check
 
-      #write.table(data,paste0("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",'parameters_iter_',as.character(iter),'.csv'),sep = ',',row.names = F)
+      write.table(data,paste0("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",'parameters_iter_',as.character(iter),'.csv'),sep = ',',row.names = F)
   }
   
   data
@@ -341,7 +357,7 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM){
   n=dim(rain_stats)[1]
 
   #Maximum and minimum search parameters space
-  Lmin=matrix(c(1,0.001,0.001,0.001,0.0854,1),nrow = 6,ncol = n)
+  Lmin=matrix(c(0.1,0.001,0.001,0.001,0.0854,1),nrow = 6,ncol = n)
   Lmax=matrix(c(4,0.1,0.1,0.1,0.1,20),nrow=6,ncol=n)
   
   
@@ -411,7 +427,7 @@ SimStats= function(parameters){
       m=meanMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
       v=varMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
       cov=covarMBLRPM(par[1],par[2],par[3],par[4],par[5],par[6],h=j/24)
-      pdr=pdrMBLRPM(par[1],par[2],par[3],par[4],par[5],h=j/24)
+      pdr=pdrRPBLRPM(par[1],par[2],par[3],par[4],par[5],h=j/24)
       est[(1+iter*4):(4+iter*4)]=c(m,v,cov,pdr)
       iter=iter+1
     }
@@ -485,7 +501,10 @@ nonzero=function(obs){
 }
 
 
-
+coords_correction=function(mapa){
+  #rotation of trmm to correct positioning
+  flip(flip(t(mapa), 1),2)
+}
 
 
 

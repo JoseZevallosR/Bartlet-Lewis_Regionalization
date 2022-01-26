@@ -32,16 +32,16 @@ grid.arrange(arrangeGrob(mapa1,mapa2,mapa3,mapa4,mapa5,mapa6,nrow = 2))
 
 #Storm characteristics
 
-c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_number_cell_per_storn.tif',5)
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/storm_characteristics/average_number_cell_per_storn.tif',6)
 mapa1=plot_map(df.map,legenda,titulo = '(a) Average number of rain cell per storm')
 
-c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_rain_cell_duration.tif',5)
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/storm_characteristics/average_rain_cell_duration.tif',6)
 mapa2=plot_map(df.map,legenda,titulo = '(b) Average duration of rain cell (hr)')
 
-c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_storm_duration.tif',5)
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/storm_characteristics/average_storm_duration.tif',6)
 mapa3=plot_map(df.map,legenda,titulo = '(c) Average rainfall duration (hr)')
 
-c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/average_rainfall_deph_storm.tif',5)
+c(df.map,legenda):=raster_to_df('d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/storm_characteristics/average_rainfall_deph_storm.tif',6)
 mapa4=plot_map(df.map,legenda,titulo = '(d) Average rain deph per storm (mm)')
 
 
@@ -54,12 +54,13 @@ cv_iter_files=files <- list.files(path = "D:/Proyectos_GitHub/Bartlet-Lewis_Regi
 plot(stack(cv_iter_files[1:9]))
 
 maps=list()
+counter=1
 
-
-for (i in 1:9){
-	c(df.map,legenda):=raster_to_df(cv_iter_files[i+45],10)
-	maps[[i]]=plot_map(df.map,legenda,titulo = u)
+for (i in 46:54){
+	c(df.map,legenda):=raster_to_df(cv_iter_files[i],10)
+	maps[[counter]]=plot_map(df.map,legenda,titulo = paste('interation',as.character(counter)))
+	counter=counter+1
 }
 
 dev.new()
-grid.arrange(arrangeGrob(maps[[1]],maps[[2]],maps[[3]],maps[[4]],maps[[6]],maps[[9]],nrow = 2))
+grid.arrange(arrangeGrob(maps[[1]],maps[[2]],maps[[3]],maps[[4]],maps[[5]],maps[[6]],maps[[7]],maps[[8]],maps[[9]],nrow = 3))

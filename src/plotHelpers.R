@@ -69,8 +69,8 @@ plot_map=function(df.map,legenda,titulo){
   Mypal=topo.colors(length(legenda))
   #number of intervals
   ggplot(data=df.map, aes(y=Latitude, x=Longitude)) +
-    geom_raster(aes(fill=factor(MAP))) +
-    theme(legend.position="left")+ggtitle(titulo)+
+    geom_raster(aes(fill=factor(MAP))) +scale_x_continuous(limits = c(-80.0,-67.5),breaks= scales::pretty_breaks(n=4))+
+    theme(axis.text.x = element_text(size=10),legend.key.height = unit(0.5, 'cm'),legend.text = element_text(size=10),legend.position="left",plot.title = element_text(hjust = 0.5))+ggtitle(titulo)+
     scale_fill_manual(values =  Mypal,labels=legenda,name=NULL)+
     coord_equal()
   

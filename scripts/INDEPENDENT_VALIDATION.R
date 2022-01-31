@@ -2,6 +2,7 @@
 #Importing the regionalization functionality
 
 source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/RMBLRP.R')
+source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/plotHelpers.R')
 
 
 inde_gauge=read.csv("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/data/ValidacionIndependiente/Validation_points/independent_gauges.csv",sep = ';')
@@ -14,18 +15,26 @@ names(gauge_par)=c('a','l','v','k','f','mx')
 
 setwd("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/data/ValidacionIndependiente/Validation_points/")
 
+library(ggplot2)
 
-#par=c(6.230970662,	0.031663573,	2.099945979,	0.079368555,	0.085400002,	12.743713211)
-
-#sim=precp_sim(par,10000,tscale = 1)
-
-obs=read.csv('FEB_PIU_06_3hr.csv',sep = ',')
-sim=precp_sim(as.numeric(gauge_par[3,]),dim(obs)[1],tscale = 3)
-
-ecdf1 <- ecdf(nonzero(obs$Rainfall.mm))
-ecdf2 <- ecdf(nonzero(sim))
-
-plot(ecdf2, verticals=TRUE, do.points=T, col='orange')
-plot(ecdf1, verticals=TRUE, do.points=T, add=TRUE)
+plot_cdf=function(file,par,titule){
+  obs=data.frame(obs=nonzero(read.csv(file,sep = ',')$Rainfall.mm))
+  sim=data.frame(sim=nonzero(precp_sim(as.numeric(par),dim(obs)[1],tscale = 3)))
+  
+  ggplot()+stat_ecdf(data=obs,aes(obs),geom = "point",color = "red")+stat_ecdf(data=sim,aes(sim),geom = "point",color='blue')+
+    labs(title = titule,x='Three hourly (mm)',y='CDF')+theme(plot.title = element_text(hjust = 0.5))+
+    scale_color_manual(labels = c("T999", "T888"), values = c("blue", "red"))
+}
 
 
+#plot_cdf('FEB_PIU_03_1hr.csv',gauge_par[1,])
+plot11=plot_cdf('FEB_PIU_02_3hr.csv',gauge_par[2,],'PIU_02')
+plot12=plot_cdf('FEB_PIU_06_3hr.csv',gauge_par[3,],'PIU_06')
+plot21=plot_cdf('FEB_PIU_07_3hr.csv',gauge_par[4,],'PIU_07')
+plot22=plot_cdf('FEB_CHA_01_3hr.csv',gauge_par[5,],'CHA_01')
+#plot_cdf('FEB_CHA_02_3hr.csv',gauge_par[6,])
+plot31=plot_cdf('FEB_HUA_01_3hr.csv',gauge_par[7,],'HUA_01')
+plot32=plot_cdf('FEB_HMT_01_3hr.csv',gauge_par[8,],'HMT_01')
+
+figure=grid.arrange(arrangeGrob(plot11,plot12,plot21,plot22,plot31,plot32,nrow = 3))
+ggsave("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/img/independent_cdf.png",figure,dpi=1200,units = 'cm',width =20 ,height =25 )

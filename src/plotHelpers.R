@@ -4,6 +4,8 @@ library(gridExtra)
 library(gtable)
 library(grid)
 library(tmap)
+library(dplyr)
+
 
 
 ':=' <- function(lhs, rhs) {
@@ -23,6 +25,12 @@ library(tmap)
     do.call(`=`, list(lhs[[i]], rhs[[i]]), envir=frame)
   return(invisible(NULL)) 
 }
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
 
 raster_to_df=function(dir,n){
 

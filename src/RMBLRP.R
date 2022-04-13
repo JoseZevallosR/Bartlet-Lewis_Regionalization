@@ -10,24 +10,24 @@ library(doParallel)
 ####################################
 #Mean
 meanMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-    x<-(h*l*mx*v*(1+k/f))/(a-1) 
-    return(x)
+  x<-(h*l*mx*v*(1+k/f))/(a-1) 
+  return(x)
 }
 #Variance
 varMBLRPM<-function(a,l,v,k,f,mx,h=1) {
-    A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-    B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
-    C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
-    D<-A*(B-C)
-    return(D)
+  A<-(2*l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+  B<-(2*(f^2)-2+k*f)*(f^2)*((a-3)*h*(v^(2-a))-(v^(3-a))+((v+h)^(3-a)))
+  C<-k*(f*(a-3)*h*(v^(2-a))-(v^(3-a))+((v+f*h)^(3-a)))
+  D<-A*(B-C)
+  return(D)
 }
 #Covariance
 covarMBLRPM<-function(a,l,v,k,f,mx,h=1,lag=1) {
-    A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
-    B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
-    C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
-    D<-A*(B-C)
-    return(D)
+  A<-(l*(1+k/f)*(mx^2)*(v^a))/((f^2)*((f^2)-1)*(a-1)*(a-2)*(a-3))
+  B<-(2*(f^2)-2+k*f)*(f^2)*(((v+(lag+1)*h)^(3-a))-2*((v+lag*h)^(3-a))+((v+(lag-1)*h)^(3-a)))
+  C<-k*(((v+(lag+1)*h*f)^(3-a))-(2*((v+h*lag*f)^(3-a)))+((v+(lag-1)*h*f)^(3-a))) 
+  D<-A*(B-C)
+  return(D)
 }
 #Dry probabilities
 #pdrRPBLRPM<-function(a,l,v,k,f,h=1) {
@@ -91,36 +91,36 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin
   fopt <- function(x) {
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
     
-
-      w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
-      
-      S3<-w2*symvar(a,l,v,k,f,mx,h=3,var3)+w3*symcovar(a,l,v,k,f,mx,h=3,cov3lag1)
-      
-      S6<-w2*symvar(a,l,v,k,f,mx,h=6,var6)
-      
-      S12<-w2*symvar(a,l,v,k,f,mx,h=12,var12)
-      
-      S18<-w2*symvar(a,l,v,k,f,mx,h=18,var18)
-      
-      w1=5;w2=5;w3=5;w4=5
-      
-      S24 <- w1*symmean(a,l,v,k,f,mx,h=24,mean24)+ w2*symvar(a,l,v,k,f,mx,h=24,var24)+ w3*symcovar(a,l,v,k,f,mx,h=24,cov24lag1)+w4*sympdr(a,l,v,k,f,h=24,pdr24)
-      
-      S<-S24+S3+S6+S12+S18
- 
-  
+    
+    w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
+    
+    S3<-w2*symvar(a,l,v,k,f,mx,h=3,var3)+w3*symcovar(a,l,v,k,f,mx,h=3,cov3lag1)
+    
+    S6<-w2*symvar(a,l,v,k,f,mx,h=6,var6)
+    
+    S12<-w2*symvar(a,l,v,k,f,mx,h=12,var12)
+    
+    S18<-w2*symvar(a,l,v,k,f,mx,h=18,var18)
+    
+    w1=5;w2=5;w3=5;w4=5
+    
+    S24 <- w1*symmean(a,l,v,k,f,mx,h=24,mean24)+ w2*symvar(a,l,v,k,f,mx,h=24,var24)+ w3*symcovar(a,l,v,k,f,mx,h=24,cov24lag1)+w4*sympdr(a,l,v,k,f,h=24,pdr24)
+    
+    S<-S24+S3+S6+S12+S18
+    
+    
     
     if(is.infinite(S)) {S<-10^8}
     if(is.na(S)) {S<-10^8} 
     return(S) 
   }
-
+  
   # set the interior and exterior parameters bounds
   xmin <- Lmin
   xmax <- Lmax
   xlow <- Lmin
   xup <- c(50,20,runif(1,min = 1.8, max = 2.2),runif(1,min = 0.05, max = 0.09),runif(1,min = 1.8, max = 2.2),runif(1,min = 8, max = 12))
-
+  
   modecal <- eas(n=6,m=30,xmin,xmax,xlow,xup,fn=fopt,maxeval=5000,ftol=1.e-10,ratio=0.99,pmut=0.95, beta=2,maxclimbs=5)
   modecal
   a<-modecal$bestpar[[1]];
@@ -155,7 +155,7 @@ nearpoints=function(mdist,radio=60000){
   for (i in 1:dim(mdist)[1]){
     values=sort(mdist[i,])
     values=tail(values, -1)
-  
+    
     condition=values[values<radio]
     near=numeric(length(condition))
     
@@ -163,7 +163,16 @@ nearpoints=function(mdist,radio=60000){
       near[j]=which(mdist[i,]==condition[j])[1]
     }
     
-    distance[[i]]=near
+    if (length(near)>1){
+      distance[[i]]=near
+    }else{
+      if (is.na(near)){
+        distance[[i]]=0
+      }else{
+        distance[[i]]=near
+      }
+    }
+    
   }
   distance
 }
@@ -195,14 +204,20 @@ filter_Neigbors=function(data,min_n=3,radio=60000){
   #Return the statins with at least n neighbors
   #data= location of the stations
   #min_n= number of minumun neighbors required
-  data_help=data
-  coordinates(data_help) <- ~x+y
-  proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
-  mdist <- distm(data_help,fun = distHaversine)
-  neighbors=nearpoints(mdist,radio=radio)
-  stations=data[lengths(neighbors)>=min_n,]
-
-  stations
+  n_old=dim(data)[1]
+  n_new=n_old*2
+  
+  while (n_old-n_new!=0){
+    n_old=dim(data)[1]
+    data_help=data
+    coordinates(data_help) <- ~x+y
+    proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
+    mdist <- distm(data_help,fun = distHaversine)
+    neighbors=nearpoints(mdist,radio=radio)
+    data=data[lengths(neighbors)>=min_n,]
+    n_new=dim(data)[1]
+  }
+  data
 }
 
 
@@ -242,10 +257,10 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
   data_help=data
   coordinates(data_help) <- ~x+y
   proj4string(data_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
-
+  
   mdist <- distm(data_help,fun = distHaversine)
   vecinos=nearpoints(mdist)
-
+  
   range=clusterIDX(data)
   old_error=rep(100,length(range))
   current_error=numeric(length(range))
@@ -280,66 +295,66 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
       mistakes=unique(mistakes)
       
       if (length(mistakes)==0){
-              current_error[k_cluster]=0
-              print('No parameters to correct')
+        current_error[k_cluster]=0
+        print('No parameters to correct')
       }else{
         current_error[k_cluster]=round(n_parameters*100/(6*length(sub$location)),2)
         if(old_error[k_cluster]<current_error[k_cluster]){
-              print('Using old parameter with lower error')
-              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(old_error[k_cluster]),'%)'))
-              parameters[mistakes,]=old_parameters[mistakes,]
-              old_error[k_cluster]=old_error[k_cluster]
-          }else{
-              
-              print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(current_error[k_cluster]),'%)'))
-              n.cores <- parallel::detectCores() - 1
-              #create the cluster
-              my.cluster <- parallel::makeCluster(
-                n.cores, 
-                type = "PSOCK"
-              )
-              #register it to be used by %dopar%
-              doParallel::registerDoParallel(cl = my.cluster)
-
-              parameters[mistakes,]=t(matrix(foreach(
-                  i=mistakes,
-                  .combine = 'c', 
-                  .packages = "HyetosMinute"
-                ) %dopar% {
-                momentos=Stats[i,]
-                
-                mean24 = momentos$mean24
-                var24 = momentos$var24
-                cov24lag1 =momentos$autocov24
-                pdr24=momentos$dryperiod24
-                var3=momentos$var3
-                cov3lag1=momentos$autocov3
-                var6=momentos$var6
-                var12=momentos$var12
-                var18=momentos$var18
-                
-                par=fun(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin[,i],Lmax[,i])
-                
-                return(par)
-                },nrow = 6,ncol = length(mistakes)))
-              parallel::stopCluster(cl = my.cluster) #closing the cluster 
+          print('Using old parameter with lower error')
+          print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(old_error[k_cluster]),'%)'))
+          parameters[mistakes,]=old_parameters[mistakes,]
+          old_error[k_cluster]=old_error[k_cluster]
+        }else{
           
-
-              old_error[k_cluster]=current_error[k_cluster]
-          }
+          print(paste("Incorrect parameters in the cluster:",as.character(n_parameters),'/',as.character(6*length(sub$location)),' (',as.character(current_error[k_cluster]),'%)'))
+          n.cores <- parallel::detectCores() - 1
+          #create the cluster
+          my.cluster <- parallel::makeCluster(
+            n.cores, 
+            type = "PSOCK"
+          )
+          #register it to be used by %dopar%
+          doParallel::registerDoParallel(cl = my.cluster)
+          
+          parameters[mistakes,]=t(matrix(foreach(
+            i=mistakes,
+            .combine = 'c', 
+            .packages = "HyetosMinute"
+          ) %dopar% {
+            momentos=Stats[i,]
+            
+            mean24 = momentos$mean24
+            var24 = momentos$var24
+            cov24lag1 =momentos$autocov24
+            pdr24=momentos$dryperiod24
+            var3=momentos$var3
+            cov3lag1=momentos$autocov3
+            var6=momentos$var6
+            var12=momentos$var12
+            var18=momentos$var18
+            
+            par=fun(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin[,i],Lmax[,i])
+            
+            return(par)
+          },nrow = 6,ncol = length(mistakes)))
+          parallel::stopCluster(cl = my.cluster) #closing the cluster 
+          
+          
+          old_error[k_cluster]=current_error[k_cluster]
+        }
       }
-
+      
       
       k_cluster=k_cluster+1 #counting clusters
       
     }  
-      #parameters=cbind(Stats[,1:2],parameters)
-      names(parameters)=c('a','l','v','k','f','mx')#c('x','y','a','l','v','k','f','mx')
-      old_parameters=data[,3:8]
-      
-      data[,3:8]=parameters#check
-
-      write.table(data,paste0("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",'parameters_iter_',as.character(iter),'.csv'),sep = ',',row.names = F)
+    #parameters=cbind(Stats[,1:2],parameters)
+    names(parameters)=c('a','l','v','k','f','mx')#c('x','y','a','l','v','k','f','mx')
+    old_parameters=data[,3:8]
+    
+    data[,3:8]=parameters#check
+    
+    #write.table(data,paste0("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/iteraciones/",'parameters_iter_',as.character(iter),'.csv'),sep = ',',row.names = F)
   }
   
   data
@@ -348,14 +363,14 @@ repetitiveCV=function(times=1,data,Stats,Lmin,Lmax,fun=MBLRPM){
 ##########################################
 ###### Run Function#######################
 ##########################################
-run=function(rain_stats,path,iterations=5,fun=MBLRPM){
+run=function(rain_stats,path,iterations=5,fun=MBLRPM,FILE_NAME){
   #rain_stats: contains the rainfall statistics
   #path: where to save the results
   #Maskshape: Shape form of the final results 
   
   
   n=dim(rain_stats)[1]
-
+  
   #Maximum and minimum search parameters space
   Lmin=matrix(c(0.1,0.001,0.001,0.001,0.0854,1),nrow = 6,ncol = n)
   Lmax=matrix(c(4,0.1,0.1,0.1,0.1,20),nrow=6,ncol=n)
@@ -373,7 +388,7 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM){
   )
   #register it to be used by %dopar%
   doParallel::registerDoParallel(cl = my.cluster)
-
+  
   parameters0=t(matrix(foreach(
     i=1:n,
     .combine = 'c', 
@@ -397,23 +412,23 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM){
     
     
   },nrow = 6,ncol = n))
-
+  
   parallel::stopCluster(cl = my.cluster) #closing the cluster
-
+  
   parameters=cbind(rain_stats[,1:2],parameters0)
   names(parameters)=c('x','y','a','l','v','k','f','mx')
   
   print('Reptitive Cross Validations ...')
   CV_parameters=repetitiveCV(times = iterations,parameters,rain_stats,Lmin = Lmin ,Lmax = Lmax)
   #saving the initial parameters
-  write.table(CV_parameters,paste0(path,'parameters01.csv'),sep = ',',row.names = F)
+  write.table(CV_parameters,paste0(path,FILE_NAME),sep = ',',row.names = F)
   CV_parameters
 }
 
 
 ##################
 SimStats= function(parameters){
-
+  
   stats=matrix(data=NA,nrow = dim(parameters)[1],ncol = 16)
   for (i in 1:dim(parameters)[1]){
     par=parameters[i,]
@@ -438,6 +453,7 @@ SimStats= function(parameters){
 }
 
 clusterIDX=function(data){
+  #return cluster index
   #data contains the intial parameter estimation
   #stats is the rainfall statistics
   drop_range=function(x,vector){
@@ -479,11 +495,11 @@ precp_sim=function(par,n,tscale=24){
   mx=par[6]*24
   
   tt=SequentialSimul(Length=n,BLpar=list(lambda=l,phi=f,kappa=k
-                                            ,alpha=a,v=v,mx=mx,sxmx=1),CellIntensityProp=list(Weibull=FALSE,
-                                                                                              iota=NA),TimeScale=tscale,ExportSynthData=list(exp=TRUE,FileContent=c("AllDays"),DaysPerSeason=31,
-                                                                                                                                        file="SynthRPBLM.txt"),ImportHistData=list(imp=F,file="HistHourlyData.txt",
-                                                                                                                                                                                   ImpDataTimeScale=1,na.values="NA",FileContent=c("AllDays"),DaysPerSeason=31,DailyValues=TRUE),
-                       PlotTs=FALSE,Statistics=list(print=TRUE,plot=FALSE),RandSeed=NULL )[[1]]
+                                         ,alpha=a,v=v,mx=mx,sxmx=1),CellIntensityProp=list(Weibull=FALSE,
+                                                                                           iota=NA),TimeScale=tscale,ExportSynthData=list(exp=TRUE,FileContent=c("AllDays"),DaysPerSeason=31,
+                                                                                                                                          file="SynthRPBLM.txt"),ImportHistData=list(imp=F,file="HistHourlyData.txt",
+                                                                                                                                                                                     ImpDataTimeScale=1,na.values="NA",FileContent=c("AllDays"),DaysPerSeason=31,DailyValues=TRUE),
+                     PlotTs=FALSE,Statistics=list(print=TRUE,plot=FALSE),RandSeed=NULL )[[1]]
   as.numeric(tt)
 }
 
@@ -505,8 +521,4 @@ coords_correction=function(mapa){
   #rotation of trmm to correct positioning
   flip(flip(t(mapa), 1),2)
 }
-
-
-
-
 

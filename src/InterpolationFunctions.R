@@ -179,18 +179,18 @@ autofitVariogramPISCOp <- function (formula, input_data, model = c("Sph", "Exp",
                                                                                                     # obs_point_data: spatialpointsdataframe (columnas OBS y MODEL)
 # model_grid_data: grid para interpolar
 
-OK_interpolation <- function(obs_point_data,
+OK_interpolation <- function(data_points,
                              model_grid_data,var=formula('mx~1'))
 {
   
   # getting residuals
   
   # variogram autofit
-  variogram_fit <- autofitVariogramPISCOp(var, data, model = c("Sph", "Exp", "Gau", "Ste")) 
+  variogram_fit <- autofitVariogramPISCOp(var, data_points, model = c("Sph", "Exp", "Gau", "Ste")) 
   
   # ok
  
-  gs <- gstat::gstat(formula = var, data = data, 
+  gs <- gstat::gstat(formula = var, data = data_points, 
                     model = variogram_fit$var_model)
     
   kp <- raster::predict(gs, model_grid_data)

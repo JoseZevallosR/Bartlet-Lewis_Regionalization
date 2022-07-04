@@ -3,7 +3,7 @@ library(ggplot2)
 library(gridExtra)
 library(gtable)
 library(grid)
-library(tmap)
+#library(tmap)
 library(dplyr)
 
 

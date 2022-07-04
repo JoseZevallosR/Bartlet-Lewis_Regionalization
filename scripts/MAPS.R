@@ -182,13 +182,13 @@ cv_iter_files=files <- list.files(path = "D:/Proyectos_GitHub/Bartlet-Lewis_Regi
 
 maps=list()
 counter=1
-
+#check language
 for (i in 46:54){
 	c(df.map,legenda):=raster_to_df(cv_iter_files[i],10)
-	maps[[counter]]=plot_map(df.map,legenda,titulo = paste('interation',as.character(counter-1)),shapefile_df)
+	maps[[counter]]=plot_map(df.map,legenda,titulo = paste('interación',as.character(counter-1)),shapefile_df)
 	counter=counter+1
 }
 
 
 figure3=grid.arrange(arrangeGrob(maps[[1]],maps[[2]],maps[[3]],maps[[4]],maps[[5]],maps[[6]],nrow = 3))
-ggsave("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/img/iteration_mux.png",figure3,dpi=1200,units = 'cm',width =20 ,height =25 )
+ggsave("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/img/iteracion_mux.png",figure3,dpi=1200,units = 'cm',width =20 ,height =25 )

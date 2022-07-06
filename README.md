@@ -13,3 +13,4 @@ Flujo de trabajo
 - [Validacion cruzada](https://github.com/JoseZevallosR/Bartlet-Lewis_Regionalization/blob/main/scripts/VALIDACION_CRUZADA_DE_MBLRP.R)
 - [Caracteristicas de tormentas](https://github.com/JoseZevallosR/Bartlet-Lewis_Regionalization/blob/main/scripts/CARACTERISTICAS_DE_TORMENTAS.R)
 - [Validacion cruzada graficos](https://github.com/JoseZevallosR/Bartlet-Lewis_Regionalization/blob/main/scripts/VALIDACION_CRUZADA_GRAFICO.R)
+- [Simuacion de precipitacion en Namora](https://github.com/JoseZevallosR/Bartlet-Lewis_Regionalization/blob/main/scripts/PRECIPITACION_SIMULADA_NAMORA.R)

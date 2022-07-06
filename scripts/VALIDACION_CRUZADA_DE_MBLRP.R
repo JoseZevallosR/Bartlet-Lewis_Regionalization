@@ -8,18 +8,16 @@ gauge_stats=filter_Neigbors(gauge_stats)
 n=dim(gauge_stats)[1]
 print(n)
 write.table(gauge_stats,'D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/data/gauge_stats_feb_filtered.csv',sep = ',',row.names = F)
-#validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters3.csv')#matrix(data=NA,nrow=n,ncol=6)
+
 validation_parameters=read.csv('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters2.csv',sep=',')[,-c(1,2)]
-#validation_parameters=matrix(data=NA,nrow=n,ncol=6)
+
 print(dim(validation_parameters)[1])
 gauge_help=gauge_stats
 coordinates(gauge_help) <- ~x+y
 proj4string(gauge_help)='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0'
 mdist=distm(gauge_help)
-#78,137
+
 try(for (i in 1:n){
-
-
 
   stats=gauge_stats[-i,]
   station=gauge_stats[i,]

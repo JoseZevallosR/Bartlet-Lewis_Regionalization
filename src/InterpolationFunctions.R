@@ -196,3 +196,23 @@ OK_interpolation <- function(data_points,
   kp <- raster::predict(gs, model_grid_data)
   round(raster::brick(kp)[["var1.pred"]], 3)
 }
+
+
+mapas_mes = function(path_to_file,grd,month='feb'){
+  parameters = read.csv(path_to_file)
+  
+  data=parameters
+  coordinates(data) <- ~x+y
+  proj4string(data)=crs(grd)
+  
+  formulas=c(formula('a~1'),formula('l~1'),formula('v~1'),formula('k~1'),formula('f~1'),formula('mx~1'))
+  
+  
+  
+  for (k in 1:6){
+    mapa=OK_interpolation(data_points = data,model_grid_data = grd,var =formulas[[k]] )
+    proj4string(mapa)=crs(grd)
+    
+    writeRaster(mapa,paste0('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_maps/','parametros_',as.character(k),'_',month,'.tif'),overwrite=TRUE)
+  }
+}

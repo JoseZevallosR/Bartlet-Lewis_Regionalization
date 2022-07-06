@@ -17,12 +17,3 @@ writeRaster(average_rain_cell_duration,'d:/Proyectos_GitHub/Bartlet-Lewis_Region
 writeRaster(average_storm_duration,'d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/storm_characteristics/average_storm_duration.tif',overwrite=T)
 writeRaster(average_rainfall_deph_storm,'d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/storm_characteristics/average_rainfall_deph_storm.tif',overwrite=T)
 writeRaster(average_number_cell_per_storn,'d:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/storm_characteristics/average_number_cell_per_storn.tif',overwrite=T)
-
-
-
-#plot(average_rainfall_deph_storm)
-
-#plot(average_storm_duration)
-
-#plot(average_hours_between_storm)
-

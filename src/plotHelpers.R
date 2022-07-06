@@ -228,6 +228,27 @@ maps_plot=function(file1,file2,file3,file4,file5,file6,intervals,file_save_name)
   
 }
 
+plot_cdf=function(file,par,titule,language='English'){
+  obs=data.frame(obs=nonzero(read.csv(file,sep = ',')$Rainfall.mm))
+  sim=data.frame(sim=nonzero(precp_sim(as.numeric(par),dim(obs)[1],tscale = 3)))
+  x=c(obs$obs,sim$sim)
+  g=c(rep(1,length(obs$obs)),rep(2,length(sim$sim)))
+  df=data.frame(x,g=factor(g))
+  
+  
+  
+  if (language=='Spanish'){
+    ggplot(df,aes(x,colour=g))+stat_ecdf(geom = "point")+stat_ecdf(geom = "point")+
+      labs(color="Legend",title = titule,x='Acumulado 3 horas (mm)',y='CDF')+theme(legend.margin=margin(t = 0, unit='cm'),legend.title=element_blank(),plot.title = element_text(hjust = 0.5),legend.position = c(0.8, 0.25))+
+      scale_color_manual(labels = c("Observado", "Simulado"), values = c("red", "blue"))
+  }else{
+    ggplot(df,aes(x,colour=g))+stat_ecdf(geom = "point")+stat_ecdf(geom = "point")+
+      labs(color="Legend",title = titule,x='Three hourly (mm)',y='CDF')+theme(legend.margin=margin(t = 0, unit='cm'),legend.title=element_blank(),plot.title = element_text(hjust = 0.5),legend.position = c(0.8, 0.25))+
+      scale_color_manual(labels = c("Observed", "Synthetic"), values = c("red", "blue"))
+  }
+  
+}
+
 
 
 

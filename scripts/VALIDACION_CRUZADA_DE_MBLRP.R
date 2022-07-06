@@ -21,8 +21,6 @@ try(for (i in 1:n){
 
   stats=gauge_stats[-i,]
   station=gauge_stats[i,]
-  
-
   print(paste('Cross Validation: ',as.character(i)))
   CV_parameters=try(run(stats,path="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/",iterations=4,FILE_NAME='parameters_feb.csv'))
   for (j in 1:6){
@@ -30,8 +28,6 @@ try(for (i in 1:n){
       denominador=sum((1/mdist[i,-i])^2)
       validation_parameters[i,j]=sum(info/mdist[i,-i]^2/denominador)
   }
-  
-  
   validation_file=cbind(gauge_stats[,c(1,2)],validation_parameters)
   write.table(validation_file,'D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_validation/CrossValidationParameters2.csv',sep=',',row.names = F)
 })

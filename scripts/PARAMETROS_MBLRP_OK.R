@@ -20,13 +20,3 @@ mapas_mes(path_to_file = path_to_file,grd,month = 'jul')
 
 path_to_file='D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/parameters_ago.csv' 
 mapas_mes(path_to_file = path_to_file,grd,month = 'ago')
-
-
-
-
-
-
-
-
-
-

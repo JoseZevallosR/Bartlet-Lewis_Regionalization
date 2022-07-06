@@ -38,4 +38,3 @@ plot32=plot_cdf('FEB_HMT_01_3hr.csv',gauge_par[8,],'HMT_01',language = 'Spanish'
 
 figure=grid.arrange(arrangeGrob(plot11,plot12,plot21,plot22,plot31,plot32,nrow = 3))
 ggsave("D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/img/cdf_independiente.png",figure,dpi=1200,units = 'cm',width =20 ,height =25 )
-

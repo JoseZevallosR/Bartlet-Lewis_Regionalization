@@ -22,30 +22,3 @@ plot_comparison(gauge_stat = gauge_stat,simulated_stats = simulated_stats,file_s
 
 file_save_name="D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/img/cv_estadisticos_febrero.png"
 plot_comparison(gauge_stat = gauge_stat,simulated_stats = simulated_stats,file_save_name = file_save_name,language = 'Spanish')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

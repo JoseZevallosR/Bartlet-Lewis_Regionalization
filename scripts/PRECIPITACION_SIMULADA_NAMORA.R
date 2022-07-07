@@ -1,3 +1,4 @@
+source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/RMBLRP.R')
 library(ggplot2)
 
 

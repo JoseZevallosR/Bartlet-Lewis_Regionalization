@@ -1,5 +1,4 @@
-source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization
-       /src/InterpolationFunctions.R')
+source('D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/src/InterpolationFunctions.R')
 
 library(raster)
 
@@ -12,8 +11,7 @@ path_to_file='D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization
 /output/CV_parameters/parameters_jan.csv' 
 mapas_mes(path_to_file = path_to_file,grd,month = 'jan')
 
-path_to_file='D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization
-/output/CV_parameters/parameters_feb.csv' 
+path_to_file='D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization/output/CV_parameters/parameters_feb.csv' 
 mapas_mes(path_to_file = path_to_file,grd,month = 'feb')
 
 path_to_file='D:/Proyectos_GitHub/Bartlet-Lewis_Regionalization

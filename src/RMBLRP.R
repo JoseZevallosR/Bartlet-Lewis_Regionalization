@@ -92,7 +92,7 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin
     a<-x[1];l<-x[2];v<-x[3];k<-x[4];f<-x[5];mx<-x[6]
     
     
-    w1=1;w2=1;w3=1;w4=1;w5=1;w6=1;
+    w1=5;w2=1;w3=1;w4=1;w5=1;w6=1;
     
     S3<-w2*symvar(a,l,v,k,f,mx,h=3,var3)+w3*symcovar(a,l,v,k,f,mx,h=3,cov3lag1)
     
@@ -104,7 +104,7 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin
     
     w1=5;w2=5;w3=5;w4=5
     
-    S24 <- w1*symmean(a,l,v,k,f,mx,h=24,mean24)+ w2*symvar(a,l,v,k,f,mx,h=24,var24)+ w3*symcovar(a,l,v,k,f,mx,h=24,cov24lag1)+w4*sympdr(a,l,v,k,f,h=24,pdr24)
+    S24 <- w1*symmean(a,l,v,k,f,mx,h=24,mean24)+ w1*symvar(a,l,v,k,f,mx,h=24,var24)+ w1*symcovar(a,l,v,k,f,mx,h=24,cov24lag1)+w1*sympdr(a,l,v,k,f,h=24,pdr24)
     
     S<-S24+S3+S6+S12+S18
     
@@ -116,12 +116,17 @@ MBLRPM=function(mean24,var24,cov24lag1,pdr24,var3,cov3lag1,var6,var12,var18,Lmin
   }
   
   # set the interior and exterior parameters bounds
-  xmin <- Lmin
-  xmax <- Lmax
+  xmin <- Lmin#c(0.1,0.001,0.001,0.001,0.01,1)
+  #xmax <- c(1,0.01,runif(1,min = 0.01, max = 0.05),runif(1,min = 0.01, max = 0.015),runif(1,min = 0.01, max = 0.015),runif(1,min = 0.1, max = 0.2))#Lmax
+  xmax <- c(1,0.01,0.01,0.01,0.2,5)
   xlow <- Lmin
-  xup <- c(50,20,runif(1,min = 1.8, max = 2.2),runif(1,min = 0.05, max = 0.09),runif(1,min = 1.8, max = 2.2),runif(1,min = 8, max = 12))
+  #xup <- c(10,1,runif(1,min = 2.0, max = 2.2),runif(1,min = 0.09, max = 0.1),runif(1,min = 0.5, max = 0.6),runif(1,min = 10.0, max = 12))
+  xup <- c(3,0.015,0.05,0.1,0.5,20)
   
-  modecal <- eas(n=6,m=30,xmin,xmax,xlow,xup,fn=fopt,maxeval=5000,ftol=1.e-10,ratio=0.99,pmut=0.95, beta=2,maxclimbs=5)
+  #Lmin=matrix(c(0.1,0.001,0.001,0.001,0.01,0.001),nrow = 6,ncol = n)
+  #Lmax=matrix(c(4,0.01,0.05,0.1,0.5,30),nrow=6,ncol=n)
+  
+  modecal <- eas(n=6,m=30,xmin,xmax,xlow,xup,fn=fopt,maxeval=10000,ftol=1.e-10,ratio=0.99,pmut=0.99, beta=2,maxclimbs=5)
   modecal
   a<-modecal$bestpar[[1]];
   l<-modecal$bestpar[[2]];
@@ -200,7 +205,7 @@ kickOutliers=function(data){
   data[-idx,]
 }
 
-filter_Neigbors=function(data,min_n=3,radio=60000){
+filter_Neigbors=function(data,min_n=2,radio=60000){
   #Return the statins with at least n neighbors
   #data= location of the stations
   #min_n= number of minumun neighbors required
@@ -372,8 +377,8 @@ run=function(rain_stats,path,iterations=5,fun=MBLRPM,FILE_NAME){
   n=dim(rain_stats)[1]
   
   #Maximum and minimum search parameters space
-  Lmin=matrix(c(0.1,0.001,0.001,0.001,0.0854,1),nrow = 6,ncol = n)
-  Lmax=matrix(c(4,0.1,0.1,0.1,0.1,20),nrow=6,ncol=n)
+  Lmin=matrix(c(0.1,0.001,0.001,0.001,0.01,0.001),nrow = 6,ncol = n)
+  Lmax=matrix(c(4,0.01,0.05,0.1,0.5,20),nrow=6,ncol=n)
   
   
   #print('Calculating the initial parameters ...')
